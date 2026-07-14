@@ -69,6 +69,10 @@ export class LinkedInScraper {
     /\bpeoplesoft\b/i,
     /\btibco\b/i,
     /\boracle\b/i,
+    /\bprotheus\b/i,
+
+    // ── Empresas Bloqueadas ──
+    /\bbairesdev\b/i,
 
     // ── Cargos que contêm "developer" mas NÃO são de software ──
     /\bproposal\b/i,
@@ -381,12 +385,21 @@ export class LinkedInScraper {
         return;
       }
 
-      // Extrair modelo de trabalho
-      const modelo = this.extrairModelo(cardTexto, tipoBusca);
+      // Extrair modelo de trabalho verificando primeiro as tags/badges específicos do LinkedIn
+      const badges = card.find('.job-search-card__metadata span, .result-benefits__text, .job-search-card__location').text().toLowerCase();
+      let modelo = this.extrairModelo(cardTexto, tipoBusca); // Fallback padrão
+      
+      if (badges.includes('presencial') || badges.includes('on-site') || badges.includes('on site')) {
+        modelo = 'Presencial';
+      } else if (badges.includes('híbrido') || badges.includes('hybrid')) {
+        modelo = 'Híbrido';
+      } else if (badges.includes('remoto') || badges.includes('remote')) {
+        modelo = 'Remoto';
+      }
 
       // 6. Filtro estrito de modelo: Para a busca nacional (remota), 
       // rejeita qualquer vaga que o LinkedIn marcou como Híbrida ou Presencial.
-      if (tipoBusca === 'remoto' && modelo !== 'Remoto') {
+      if (tipoBusca === 'remoto' && (modelo === 'Presencial' || modelo === 'Híbrido')) {
         return;
       }
 
@@ -426,6 +439,7 @@ export class LinkedInScraper {
           localizacao: localizacao || (tipoBusca === 'bauru' ? 'Bauru, SP' : 'Brasil'),
           modelo,
           link: urlSemParametros,
+          tipoBusca,
         });
       }
     });
@@ -463,30 +477,27 @@ export class LinkedInScraper {
 
     for (const vaga of vagas) {
       try {
-        await page.goto(vaga.link, { waitUntil: 'domcontentloaded', timeout: 20000 });
-        await this.delay(2000);
+        await page.goto(vaga.link, { waitUntil: 'networkidle', timeout: 20000 }).catch(() => {});
+        // Fallback wait para garantir renderização de elementos dinâmicos
+        await page.waitForTimeout(1500);
 
         const pageHtml = await page.content();
         const pageHtmlLower = pageHtml.toLowerCase();
         const bodyText = await page.textContent('body') || '';
         const bodyLower = bodyText.toLowerCase();
 
-        /*
-        const ehPromovida =
-          // Texto visível específico do LinkedIn (PT e EN)
-          bodyLower.includes('promovida por') ||
-          bodyLower.includes('promoted by') ||
-          // Classes CSS e atributos HTML de vagas patrocinadas
-          pageHtmlLower.includes('promoted-badge') ||
-          pageHtmlLower.includes('is-promoted') ||
-          pageHtmlLower.includes('data-promoted') ||
-          pageHtmlLower.includes('job-details-premium');
-
-        if (ehPromovida) {
-          console.log(`[Scraper] ❌ Vaga "${vaga.titulo}" (ID: ${vaga.id}) é promovida. Ignorando.`);
-          continue;
+        // Filtro de modelo (Double Check na página individual)
+        // Se a vaga for da busca remota, mas a página disser Presencial ou Híbrido, descarta.
+        if (vaga.tipoBusca === 'remoto') {
+          if (bodyLower.includes('presencial') || bodyLower.includes('on-site') || bodyLower.includes('on site') || bodyLower.includes('híbrido') || bodyLower.includes('hybrid')) {
+            // Verifica de forma mais flexível no pageText para evitar bugs com limites de palavras (\b)
+            const pageText = bodyText.replace(/\s+/g, ' ').toLowerCase();
+            if (pageText.includes(' presencial ') || pageText.includes(' híbrido ') || pageText.includes(' on-site ') || pageText.includes(' hybrid ')) {
+              console.log(`[Scraper] ❌ Vaga "${vaga.titulo}" (ID: ${vaga.id}) mentiu ser remota, mas é presencial/híbrida na página. Ignorando.`);
+              continue;
+            }
+          }
         }
-        */
 
         // Filtro de quantidade máxima de candidatos
         if (config.maxApplicants > 0) {

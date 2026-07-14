@@ -8,6 +8,7 @@ export interface Vaga {
   localizacao: string;
   modelo: string;
   link: string;
+  tipoBusca?: 'remoto' | 'bauru';
 }
 
 export class TelegramService {
