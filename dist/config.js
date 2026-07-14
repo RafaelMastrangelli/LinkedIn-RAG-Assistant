@@ -15,12 +15,14 @@ const getEnvOrThrow = (key) => {
     }
     return value;
 };
-// Se o token ou chat ID forem os placeholders do template, vamos alertar o usuário mas não quebrar imediatamente na compilação,
-// porém geraremos erro em tempo de execução se tentarem enviar mensagens reais.
 exports.config = {
     telegramToken: getEnvOrThrow('TELEGRAM_TOKEN'),
     telegramChatId: getEnvOrThrow('TELEGRAM_CHAT_ID'),
-    searchKeywords: process.env.SEARCH_KEYWORDS || 'Desenvolvedor',
+    // Suporta múltiplas keywords separadas por vírgula (ex: "Desenvolvedor,Analista de Sistemas")
+    searchKeywords: (process.env.SEARCH_KEYWORDS || 'Desenvolvedor')
+        .split(',')
+        .map((kw) => kw.trim())
+        .filter((kw) => kw.length > 0),
     databasePath: process.env.DATABASE_PATH || path_1.default.join(__dirname, '..', 'data', 'jobs.db'),
     scraperDelayMs: parseInt(process.env.SCRAPER_DELAY_MS || '5000', 10),
 };

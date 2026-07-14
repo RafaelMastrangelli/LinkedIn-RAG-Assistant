@@ -6,6 +6,7 @@ export interface Vaga {
   titulo: string;
   empresa: string;
   localizacao: string;
+  modelo: string;
   link: string;
 }
 
@@ -36,6 +37,7 @@ export class TelegramService {
         `Cargo: ${vaga.titulo}\n` +
         `Empresa: ${vaga.empresa}\n` +
         `Local: ${vaga.localizacao}\n` +
+        `Modelo: ${vaga.modelo}\n` +
         `Link: ${vaga.link}\n`
       );
       return true;
@@ -44,12 +46,14 @@ export class TelegramService {
     const tituloEscaped = this.escapeHtml(vaga.titulo);
     const empresaEscaped = this.escapeHtml(vaga.empresa);
     const localizacaoEscaped = this.escapeHtml(vaga.localizacao);
+    const modeloEscaped = this.escapeHtml(vaga.modelo);
 
     const mensagem = 
       `🚀 <b>Nova Vaga Encontrada!</b>\n\n` +
       `<b>Cargo:</b> ${tituloEscaped}\n` +
       `<b>Empresa:</b> ${empresaEscaped}\n` +
-      `<b>Local/Modelo:</b> ${localizacaoEscaped}\n\n` +
+      `📍 <b>Local:</b> ${localizacaoEscaped}\n` +
+      `💼 <b>Modelo:</b> ${modeloEscaped}\n\n` +
       `🔗 <a href="${vaga.link}">Link direto para a vaga</a>`;
 
     try {

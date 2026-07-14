@@ -12,8 +12,12 @@ async function executarFluxoScraping() {
 
   try {
     await scraper.init();
-    const vagasEncontradas = await scraper.buscarVagas();
-    console.log(`[Orquestrador] Scraper retornou ${vagasEncontradas.length} vagas pós-filtragem.`);
+    const vagasCandidatas = await scraper.buscarVagas();
+    console.log(`[Orquestrador] Scraper retornou ${vagasCandidatas.length} vagas candidatas da lista de busca.`);
+
+    // Verificação individual: visita a página de cada vaga para confirmar que NÃO é promovida
+    const vagasEncontradas = await scraper.verificarPromovidas(vagasCandidatas);
+    console.log(`[Orquestrador] ${vagasEncontradas.length} vagas aprovadas após verificação individual.`);
 
     let novasVagasContador = 0;
 
