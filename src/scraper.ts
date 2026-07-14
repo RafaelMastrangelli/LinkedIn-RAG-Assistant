@@ -473,8 +473,8 @@ export class LinkedInScraper {
 
         const ehPromovida =
           // Texto visível específico do LinkedIn (PT e EN)
-          bodyLower.includes('promovida por quem') ||
-          bodyLower.includes('promoted by job') ||
+          bodyLower.includes('promovida por') ||
+          bodyLower.includes('promoted by') ||
           // Classes CSS e atributos HTML de vagas patrocinadas
           pageHtmlLower.includes('promoted-badge') ||
           pageHtmlLower.includes('is-promoted') ||
@@ -483,10 +483,17 @@ export class LinkedInScraper {
 
         if (ehPromovida) {
           console.log(`[Scraper] ❌ Vaga "${vaga.titulo}" (ID: ${vaga.id}) é promovida. Ignorando.`);
-        } else {
-          console.log(`[Scraper] ✅ Vaga "${vaga.titulo}" (ID: ${vaga.id}) verificada — não é promovida.`);
-          vagasVerificadas.push(vaga);
+          continue;
         }
+
+        // Filtro de exclusão extra no texto completo da vaga (pega palavras que não apareceram no card resumido da busca)
+        if (this.contemTermoExclusao(bodyLower)) {
+          console.log(`[Scraper] ❌ Vaga "${vaga.titulo}" (ID: ${vaga.id}) contém termo proibido no descritivo completo. Ignorando.`);
+          continue;
+        }
+
+        console.log(`[Scraper] ✅ Vaga "${vaga.titulo}" (ID: ${vaga.id}) verificada — aprovada.`);
+        vagasVerificadas.push(vaga);
       } catch (err: any) {
         console.error(`[Scraper] Erro ao verificar vaga ${vaga.id}: ${err.message}. Ignorando por segurança.`);
       }
