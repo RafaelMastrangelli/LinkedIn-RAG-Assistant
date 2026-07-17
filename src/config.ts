@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import path from 'path';
+import { resolveDatabasePath } from './database';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -30,7 +30,7 @@ export const config: Config = {
     .split(',')
     .map((kw) => kw.trim())
     .filter((kw) => kw.length > 0),
-  databasePath: process.env.DATABASE_PATH || path.join(__dirname, '..', 'data', 'jobs.db'),
+  databasePath: resolveDatabasePath(),
   scraperDelayMs: parseInt(process.env.SCRAPER_DELAY_MS || '5000', 10),
   searchTimeHours: parseInt(process.env.SEARCH_TIME_HOURS || '1', 10),
   maxApplicants: parseInt(process.env.MAX_APPLICANTS || '50', 10),

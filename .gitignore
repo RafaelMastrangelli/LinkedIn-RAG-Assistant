@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.next/
 
 # Env files
 .env
@@ -31,3 +32,6 @@ yarn-error.log*
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Jest / coverage
+coverage/

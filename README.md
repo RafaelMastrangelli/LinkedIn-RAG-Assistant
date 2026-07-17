@@ -55,7 +55,19 @@ npm run dev:once
 ### 4. Rodar Continuamente (Em Background)
 Para deixar rodando a cada 1 hora no seu terminal local:
 ```bash
-npm run dev
+npm run dev:bot
+```
+
+### 5. Dashboard de Vagas (Next.js + Shadcn/UI)
+Para listar as vagas salvas e marcar status (`nova` / `aplicado` / `descartado`):
+```bash
+npm run dev:dashboard
+```
+Abra [http://localhost:3000](http://localhost:3000). A página usa ISR (revalidate 60s) e invalida o cache ao mudar o status.
+
+Para rodar os testes do repositório:
+```bash
+npm test
 ```
 
 ---

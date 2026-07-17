@@ -1,60 +1,63 @@
-import fs from 'fs';
 import path from 'path';
-import sqlite3 from 'sqlite3';
-import { open, Database } from 'sqlite';
-import { config } from './config';
+import { JobsRepository } from './repositories/jobs.repository';
+import type { Vaga, VagaRecord, VagaStatus } from './types/vaga';
 
+export { JobsRepository } from './repositories/jobs.repository';
+export type { Vaga, VagaRecord, VagaStatus } from './types/vaga';
+
+/** Resolve o caminho do SQLite sem depender das credenciais do Telegram. */
+export function resolveDatabasePath(explicitPath?: string): string {
+  if (explicitPath) {
+    return explicitPath;
+  }
+
+  if (process.env.DATABASE_PATH) {
+    return process.env.DATABASE_PATH;
+  }
+
+  return path.join(process.cwd(), 'data', 'jobs.db');
+}
+
+/**
+ * Serviço de banco usado pelo bot.
+ * Mantém a API anterior e delega ao JobsRepository.
+ */
 export class DatabaseService {
-  private db: Database<sqlite3.Database, sqlite3.Statement> | null = null;
+  private readonly repository: JobsRepository;
+
+  constructor(databasePath?: string) {
+    this.repository = new JobsRepository(resolveDatabasePath(databasePath));
+  }
 
   async init(): Promise<void> {
-    // Garantir que o diretório do banco de dados exista
-    const dbDir = path.dirname(config.databasePath);
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
-
-    // Abrir a conexão com o SQLite
-    this.db = await open({
-      filename: config.databasePath,
-      driver: sqlite3.Database,
-    });
-
-    // Criar a tabela se não existir
-    await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS vagas (
-        id_vaga TEXT PRIMARY KEY,
-        data_envio TEXT NOT NULL
-      )
-    `);
-
-    console.log(`[Database] Banco de dados inicializado em: ${config.databasePath}`);
+    await this.repository.init();
   }
 
   async vagaExiste(idVaga: string): Promise<boolean> {
-    if (!this.db) {
-      throw new Error('Banco de dados não inicializado. Chame o método init() primeiro.');
-    }
-
-    const row = await this.db.get('SELECT id_vaga FROM vagas WHERE id_vaga = ?', [idVaga]);
-    return !!row;
+    return this.repository.vagaExiste(idVaga);
   }
 
-  async salvarVaga(idVaga: string): Promise<void> {
-    if (!this.db) {
-      throw new Error('Banco de dados não inicializado. Chame o método init() primeiro.');
-    }
+  async salvarVaga(vaga: Vaga): Promise<void> {
+    await this.repository.salvarVaga(vaga);
+  }
 
-    const dataEnvio = new Date().toISOString();
-    await this.db.run('INSERT INTO vagas (id_vaga, data_envio) VALUES (?, ?)', [idVaga, dataEnvio]);
-    console.log(`[Database] Vaga salva: ${idVaga}`);
+  async listarVagas(status?: VagaStatus): Promise<VagaRecord[]> {
+    return this.repository.listarVagas(status);
+  }
+
+  async buscarPorId(idVaga: string): Promise<VagaRecord | undefined> {
+    return this.repository.buscarPorId(idVaga);
+  }
+
+  async atualizarStatus(
+    idVaga: string,
+    status: VagaStatus,
+    notas?: string | null
+  ): Promise<VagaRecord | undefined> {
+    return this.repository.atualizarStatus(idVaga, status, notas);
   }
 
   async fechar(): Promise<void> {
-    if (this.db) {
-      await this.db.close();
-      this.db = null;
-      console.log('[Database] Conexão com o banco de dados fechada.');
-    }
+    await this.repository.fechar();
   }
 }

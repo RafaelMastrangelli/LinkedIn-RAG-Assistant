@@ -1,15 +1,8 @@
 import axios from 'axios';
 import { config } from './config';
+import { Vaga } from './types/vaga';
 
-export interface Vaga {
-  id: string;
-  titulo: string;
-  empresa: string;
-  localizacao: string;
-  modelo: string;
-  link: string;
-  tipoBusca?: 'remoto' | 'bauru';
-}
+export type { Vaga } from './types/vaga';
 
 export class TelegramService {
   private readonly baseUrl: string;

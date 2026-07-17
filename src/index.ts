@@ -35,7 +35,7 @@ async function executarFluxoScraping() {
         
         const enviado = await telegramService.enviarNotificacao(vaga);
         if (enviado) {
-          await dbService.salvarVaga(vaga.id);
+          await dbService.salvarVaga(vaga);
           novasVagasContador++;
         }
 

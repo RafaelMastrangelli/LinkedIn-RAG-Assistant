@@ -13,8 +13,8 @@ RUN npm ci
 # Copiar o código fonte
 COPY src ./src
 
-# Compilar o código TypeScript para JavaScript (dist)
-RUN npm run build
+# Compilar apenas o bot TypeScript para JavaScript (dist)
+RUN npm run build:bot
 
 # Remover dependências de desenvolvimento para deixar a imagem de produção mais leve
 RUN npm prune --production
