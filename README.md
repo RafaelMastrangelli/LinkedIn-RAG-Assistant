@@ -105,4 +105,5 @@ Por padrão o bot já bloqueia:
 - **Senioridades:** Sênior, Especialista, Tech Lead, Arquiteto, Estágio, Trainee.
 
 ---
+#teste
 Feito com ☕ e IA para facilitar a vida do Desenvolvedor!
