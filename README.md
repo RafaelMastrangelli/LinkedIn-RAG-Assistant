@@ -104,6 +104,5 @@ Por padrão o bot já bloqueia:
 - **Mobile Nativo:** iOS, Android, Flutter, Swift, Kotlin.
 - **Senioridades:** Sênior, Especialista, Tech Lead, Arquiteto, Estágio, Trainee.
 
----
-#teste
+----
 Feito com ☕ e IA para facilitar a vida do Desenvolvedor!
