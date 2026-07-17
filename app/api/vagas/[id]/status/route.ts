@@ -1,8 +1,8 @@
 import { revalidatePath } from 'next/cache';
 import { NextResponse } from 'next/server';
 import { getJobsDb } from '@/lib/db';
-import { isVagaStatus } from '@/src/types/vaga';
-import type { VagaStatus } from '@/src/types/vaga';
+import { StudyPlanOrchestrator } from '@/src/services/study-plan-orchestrator';
+import { isVagaStatus, type VagaStatus } from '@/src/types/vaga';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +49,15 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ error: 'Vaga não encontrada.' }, { status: 404 });
   }
 
+  if (body.status === 'aplicado') {
+    const orchestrator = new StudyPlanOrchestrator(db);
+    void orchestrator.gerarParaVaga(id).catch((err: Error) => {
+      console.error(`[Plano] Falha ao gerar plano automático para ${id}:`, err.message);
+    });
+  }
+
   revalidatePath('/');
+  revalidatePath(`/vagas/${id}`);
 
   return NextResponse.json({ vaga: atualizada });
 }

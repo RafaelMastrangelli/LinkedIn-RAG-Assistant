@@ -82,4 +82,61 @@ describe('JobsRepository', () => {
     expect(aindaExiste).toBe(true);
     expect(todas).toHaveLength(1);
   });
+
+  it('salva descrição e plano de estudos da vaga', async () => {
+    await repository.salvarVaga(vagaBase);
+
+    const comDescricao = await repository.salvarDescricao(
+      vagaBase.id,
+      'Requisitos: TypeScript, Node.js e testes automatizados.',
+      'manual'
+    );
+
+    expect(comDescricao?.descricao).toContain('TypeScript');
+    expect(comDescricao?.descricao_fonte).toBe('manual');
+    expect(comDescricao?.descricao_atualizada_em).toBeTruthy();
+
+    const planoGerando = await repository.upsertPlano(vagaBase.id, {
+      status: 'gerando',
+      conteudo_md: '',
+    });
+    expect(planoGerando.status).toBe('gerando');
+
+    const planoPronto = await repository.upsertPlano(vagaBase.id, {
+      status: 'pronto',
+      conteudo_md: '# Plano\n\n- Estudar TypeScript',
+      modelo_llm: 'gpt-4o-mini',
+      erro: null,
+    });
+
+    expect(planoPronto.status).toBe('pronto');
+    expect(planoPronto.conteudo_md).toContain('TypeScript');
+    expect(planoPronto.modelo_llm).toBe('gpt-4o-mini');
+
+    const buscado = await repository.buscarPlanoPorVaga(vagaBase.id);
+    expect(buscado?.id).toBe(planoPronto.id);
+  });
+
+  it('salva e atualiza o currículo do candidato', async () => {
+    const salvo = await repository.salvarCurriculo({
+      nome_arquivo: 'cv.pdf',
+      mime_type: 'application/pdf',
+      texto_extraido: 'Experiência com TypeScript, Node.js e React.',
+    });
+
+    expect(salvo.nome_arquivo).toBe('cv.pdf');
+    expect(salvo.texto_extraido).toContain('TypeScript');
+
+    const atualizado = await repository.salvarCurriculo({
+      nome_arquivo: 'cv-novo.txt',
+      mime_type: 'text/plain',
+      texto_extraido: 'Experiência com .NET e C#.',
+    });
+
+    expect(atualizado.nome_arquivo).toBe('cv-novo.txt');
+    expect((await repository.buscarCurriculo())?.texto_extraido).toContain('.NET');
+
+    await repository.removerCurriculo();
+    expect(await repository.buscarCurriculo()).toBeUndefined();
+  });
 });

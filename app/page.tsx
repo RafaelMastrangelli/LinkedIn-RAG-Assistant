@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CurriculumUpload } from '@/components/curriculum-upload';
 import { JobsCharts } from '@/components/jobs-charts';
 import { JobsDashboard } from '@/components/jobs-dashboard';
 import { getJobsDb } from '@/lib/db';
@@ -22,6 +23,7 @@ function getDashboardCounts(vagas: VagaRecord[]): DashboardCounts {
 export default async function HomePage() {
   const db = await getJobsDb();
   const vagas = await db.listarVagas();
+  const curriculo = await db.buscarCurriculo();
   const counts = getDashboardCounts(vagas);
   const stats = [
     { label: 'Total', value: counts.todas },
@@ -29,6 +31,15 @@ export default async function HomePage() {
     { label: 'Aplicadas', value: counts.aplicado },
     { label: 'Descartadas', value: counts.descartado },
   ];
+
+  const curriculoSummary = curriculo
+    ? {
+        nome_arquivo: curriculo.nome_arquivo,
+        atualizado_em: curriculo.atualizado_em,
+        caracteres: curriculo.texto_extraido.length,
+        preview: curriculo.texto_extraido.slice(0, 400),
+      }
+    : null;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6">
@@ -39,9 +50,11 @@ export default async function HomePage() {
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Dashboard de Vagas</h1>
         <p className="max-w-2xl text-muted-foreground">
           Revise as vagas encontradas pelo scraper, abra o LinkedIn e marque as que você já
-          aplicou ou descartou.
+          aplicou ou descartou. Anexe o currículo para personalizar os planos de estudo.
         </p>
       </header>
+
+      <CurriculumUpload curriculo={curriculoSummary} />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (

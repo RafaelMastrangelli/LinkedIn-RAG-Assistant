@@ -159,6 +159,13 @@ function JobsTable({ vagas }: { vagas: VagaRecord[] }) {
                       </a>
                     ) : null}
 
+                    <Link
+                      href={`/vagas/${vaga.id_vaga}`}
+                      className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+                    >
+                      Plano
+                    </Link>
+
                     {vaga.status !== 'aplicado' ? (
                       <Button
                         size="sm"

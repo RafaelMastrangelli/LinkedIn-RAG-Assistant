@@ -65,6 +65,15 @@ npm run dev:dashboard
 ```
 Abra [http://localhost:3000](http://localhost:3000). A página usa ISR (revalidate 60s) e invalida o cache ao mudar o status.
 
+### 6. Planos de estudo (scrape + LLM)
+1. Configure no `.env`:
+   - `GROQ_API_KEY`
+   - `LLM_MODEL` (opcional, padrão `llama-3.3-70b-versatile`)
+   - `CANDIDATE_PROFILE` (seu perfil/stacks)
+2. No dashboard, anexe seu currículo (PDF/TXT) no card **Currículo**.
+3. Marque **Apliquei** (dispara scrape + geração em background) ou abra **Plano** na vaga.
+4. Em `/vagas/[id]`, use **Gerar plano** / **Scrape + gerar**, ou cole a descrição manual se o LinkedIn bloquear.
+
 Para rodar os testes do repositório:
 ```bash
 npm test
